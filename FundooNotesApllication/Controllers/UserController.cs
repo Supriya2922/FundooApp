@@ -2,14 +2,20 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using ModelLayer;
 using RepositoryLayer.Entity;
+using RepositoryLayer.FundooDBContext;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FundooNotesApllication.Controllers
 {
@@ -18,13 +24,15 @@ namespace FundooNotesApllication.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserManager manager;
-        private readonly IConfiguration _config;
-        public UserController(IUserManager manager, IConfiguration config)
+        
+       
+        public UserController(IUserManager manager)
         {
             this.manager = manager;
-            _config = config;
-        }
-
+           
+            
+    }
+        
         [HttpPost("Register")]
         public ActionResult UserRegister(UserRegistrationModel model)
         {
@@ -71,21 +79,50 @@ namespace FundooNotesApllication.Controllers
                 return null;
             }
         }
-        private string GenerateToken(LoginModel model)
+        
+        
+       
+        [HttpPost("ForgetPassword")] 
+        public ActionResult forgetPassword(string email)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            try
+            {
+                var token = manager.forgetPassword(email);
+                if (token != null)
+                {
+                    
+                    return Ok(new ResponseModel<string> { Status = true, Message = "Reset link sent successfully" });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel<string> { Status = false, Message = "Reset link not sent" });
+                }
+            }
+            catch (Exception)
+            {
 
-
-            var token = new JwtSecurityToken(_config["Jwt:Issuer"],
-              _config["Jwt:Audience"],
-              null,
-              expires: DateTime.Now.AddMinutes(120),
-              signingCredentials: credentials);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-
-
+                throw;
+            }
         }
+
+        [Authorize]
+       
+        [HttpPost("resetPassword")]
+        public ActionResult resetPassword(ResetPasswordModel model)
+        {
+            var email = User.FindFirst(ClaimTypes.Email).Value.ToString();
+            var reset=manager.resetPassword(model,email);
+            if (reset != null)
+            {
+               return Ok( new ResponseModel<bool> { Status = true, Message = "Password reset successful", Data = reset });
+            }
+            else
+            {
+                return BadRequest(new ResponseModel<bool> { Status = false, Message = "Sorry!Could not reset password" });
+            }
+        }
+     
+
     }
+
 }
