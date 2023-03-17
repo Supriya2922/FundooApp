@@ -22,7 +22,7 @@ namespace FundooNotesApllication.Controllers
             this.manager = manager;
         }
         [Authorize]
-        [HttpPost("CreateNote")]
+        [HttpPost]
         public ActionResult CreateNote(CreateNotesModel model)
         {
             try
