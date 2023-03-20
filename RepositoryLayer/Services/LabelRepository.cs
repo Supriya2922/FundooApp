@@ -1,6 +1,7 @@
 ﻿using ModelLayer;
 using RepositoryLayer.Entity;
 using RepositoryLayer.FundooDBContext;
+using RepositoryLayer.Migrations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -94,6 +95,27 @@ namespace RepositoryLayer.Services
             try
             {
                 var label = context.Labels.Where(x => x.UserId == userid && x.NotesId == noteid).ToList();
+                if (label != null)
+                {
+                    return label;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+        public IEnumerable<LabelEntity> GetAllLabelsForUser(long userid)
+        {
+            try
+            {
+
+                var label = context.Labels.Where(x => x.UserId == userid).ToList();
                 if (label != null)
                 {
                     return label;
