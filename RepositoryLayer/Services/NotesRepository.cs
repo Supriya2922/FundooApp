@@ -345,7 +345,8 @@ namespace RepositoryLayer.Services
                     return null;
                 }
                 var skipsize = (pagenumber - 1) * pagesize;
-                var checkphrase = context.Notes.Where(x => x.UserId == userid && (x.Title.ToLower().Contains(phrase) || x.Description.ToLower().Contains(phrase))).OrderBy(x => x.NotesId)
+                var checkphrase = context.Notes.Where(x => x.UserId == userid && (x.Title.ToLower().Contains(phrase) || x.Description.ToLower().Contains(phrase)))
+                                               .OrderBy(x => x.NotesId)
                                                .Skip(skipsize)
                                                .Take(pagesize).ToList();
                 if (checkphrase != null)
