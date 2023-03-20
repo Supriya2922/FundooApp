@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using ModelLayer;
 using RepositoryLayer.Entity;
 using System;
+using System.Collections.Generic;
 
 namespace FundooNotesApllication.Controllers
 {
@@ -87,5 +88,29 @@ namespace FundooNotesApllication.Controllers
                 throw;
             }
         }
+        [Authorize]
+        [HttpGet]
+        public ActionResult GetAllLabels(long noteid)
+        {
+            try
+            {
+                var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
+                var label = manager.GetLabels(userid, noteid);
+                if (label != null)
+                {
+                    return Ok(new ResponseModel<IEnumerable<LabelEntity>> { Status = true, Message = "Label retrieved successfully", Data = label });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel<string> { Status = false, Message = "Empty labels" });
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+        
     }
 }
