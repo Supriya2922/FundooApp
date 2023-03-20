@@ -64,6 +64,28 @@ namespace FundooNotesApllication.Controllers
                 throw;
             }
         }
-       
+        [Authorize]
+        [HttpPut]
+        public ActionResult UpdateLabel(UpdateLabelModel model)
+        {
+            try
+            {
+                var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
+                var label = manager.UpdateLabel(userid, model);
+                if (label!= null)
+                {
+                    return Ok(new ResponseModel<LabelEntity> { Status = true, Message = "Label updated successfully", Data = label });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel<string> { Status = false, Message = "Label could not be added" });
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
     }
 }
