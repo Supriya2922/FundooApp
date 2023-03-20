@@ -30,7 +30,7 @@ namespace FundooNotesApllication.Controllers
                 }
                 else
                 {
-                    return BadRequest(new ResponseModel<string> { Status = true, Message = "Label could not be added" });
+                    return BadRequest(new ResponseModel<string> { Status = false, Message = "Label could not be added" });
                 }
             }
             catch (System.Exception)
@@ -39,5 +39,31 @@ namespace FundooNotesApllication.Controllers
                 throw;
             }
         }
+
+        [Authorize]
+        [HttpDelete]
+        public ActionResult deleteLabel(int noteid,int labelid) 
+        {
+            try
+            {
+                var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
+                var label=manager.RemoveLabel(userid,noteid,labelid);
+                if (label != null)
+                {
+                    return Ok(new ResponseModel<bool> { Status = true, Message = "Label deleted successfully", Data = label });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel<bool> { Status = false, Message = "Label could not be deleted",Data=label });
+                }
+
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+       
     }
 }
