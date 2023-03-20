@@ -3,6 +3,7 @@ using RepositoryLayer.Entity;
 using RepositoryLayer.FundooDBContext;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 
@@ -44,5 +45,26 @@ namespace RepositoryLayer.Services
             }
         }
 
+        public bool RemoveLabel(long userid,long noteid,long labelid) {
+            try
+            {
+                var label = context.Labels.FirstOrDefault(x => x.LabelId == labelid && x.UserId == userid && x.NotesId == noteid);
+                if (label != null)
+                {
+                    context.Labels.Remove(label);
+                    context.SaveChanges();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
     }
 }
