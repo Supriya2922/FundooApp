@@ -91,15 +91,24 @@ namespace RepositoryLayer.Services
         }
         public IEnumerable<LabelEntity> GetLabels(long userid,long noteid)
         {
-            var label=context.Labels.Where(x=>x.UserId== userid && x.NotesId==noteid).ToList();
-            if (label != null)
+            try
             {
-                return label;
+                var label = context.Labels.Where(x => x.UserId == userid && x.NotesId == noteid).ToList();
+                if (label != null)
+                {
+                    return label;
+                }
+                else
+                {
+                    return null;
+                }
             }
-            else
+            catch (Exception)
             {
-                return null;
+
+                throw;
             }
         }
+       
     }
 }
