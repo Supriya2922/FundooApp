@@ -1,4 +1,5 @@
-﻿using ModelLayer;
+﻿using ManagerLayer.Interfaces;
+using ModelLayer;
 using RepositoryLayer.Entity;
 using RepositoryLayer.Interfaces;
 using System;
@@ -7,7 +8,7 @@ using System.Text;
 
 namespace ManagerLayer.Services
 {
-    public class LabelManager
+    public class LabelManager:ILabelManager
     {
         private readonly ILabelRepository repository;
         public LabelManager(ILabelRepository repository)
