@@ -1,6 +1,7 @@
 ﻿using ModelLayer;
 using RepositoryLayer.Entity;
 using RepositoryLayer.FundooDBContext;
+using RepositoryLayer.Interfaces;
 using RepositoryLayer.Migrations;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using System.Text;
 
 namespace RepositoryLayer.Services
 {
-    public class LabelRepository
+    public class LabelRepository: ILabelRepository
     {
         private readonly FunContext context;
 
@@ -131,6 +132,8 @@ namespace RepositoryLayer.Services
                 throw;
             }
         }
+
+        
        
     }
 }
