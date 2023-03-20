@@ -66,5 +66,28 @@ namespace RepositoryLayer.Services
                 throw;
             }
         }
+
+        public LabelEntity UpdateLabel(long userid,UpdateLabelModel model)
+        {
+            try
+            {
+                var label = context.Labels.FirstOrDefault(x => x.UserId == userid && x.NotesId == model.NotesId && x.LabelId == model.labelid);
+                if(label != null) 
+                {
+                    label.LabelName = model.labelname;
+                    context.SaveChanges();
+                    return label;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
     }
 }
