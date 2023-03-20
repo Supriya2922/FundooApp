@@ -89,5 +89,17 @@ namespace RepositoryLayer.Services
                 throw;
             }
         }
+        public IEnumerable<LabelEntity> GetLabels(long userid,long noteid)
+        {
+            var label=context.Labels.Where(x=>x.UserId== userid && x.NotesId==noteid).ToList();
+            if (label != null)
+            {
+                return label;
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }
