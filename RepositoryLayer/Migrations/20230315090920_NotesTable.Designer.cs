@@ -3,46 +3,23 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RepositoryLayer.FundooDBContext;
 
 namespace RepositoryLayer.Migrations
 {
     [DbContext(typeof(FunContext))]
-    partial class FunContextModelSnapshot : ModelSnapshot
+    [Migration("20230315090920_NotesTable")]
+    partial class NotesTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "3.1.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-            modelBuilder.Entity("RepositoryLayer.Entity.CollaboratorEntity", b =>
-                {
-                    b.Property<long>("CollabId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("CollabEmail")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("NotesId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("CollabId");
-
-                    b.HasIndex("NotesId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Collaborators");
-                });
 
             modelBuilder.Entity("RepositoryLayer.Entity.NotesEntity", b =>
                 {
@@ -78,10 +55,10 @@ namespace RepositoryLayer.Migrations
                     b.Property<bool>("isArchieved")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("isPinned")
+                    b.Property<bool>("isDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("trash")
+                    b.Property<bool>("isPinned")
                         .HasColumnType("bit");
 
                     b.HasKey("NotesId");
@@ -113,21 +90,6 @@ namespace RepositoryLayer.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("User");
-                });
-
-            modelBuilder.Entity("RepositoryLayer.Entity.CollaboratorEntity", b =>
-                {
-                    b.HasOne("RepositoryLayer.Entity.NotesEntity", "Notes")
-                        .WithMany()
-                        .HasForeignKey("NotesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RepositoryLayer.Entity.UserEntity", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("RepositoryLayer.Entity.NotesEntity", b =>

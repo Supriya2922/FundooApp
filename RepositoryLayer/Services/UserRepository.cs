@@ -11,6 +11,8 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.CodeDom.Compiler;
+using Microsoft.EntityFrameworkCore;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace RepositoryLayer.Services
 {
@@ -72,7 +74,55 @@ namespace RepositoryLayer.Services
                 return null;
             }
         }
-       private string Generate(string email,long userid)
+        public string forgetPassword(string email)
+        {
+            try
+            {
+                var checkEmail = context.User.Where(x => x.Email == email).FirstOrDefault();
+                if(checkEmail!=null)
+                {
+                    var token=Generate(checkEmail.Email,checkEmail.UserId);
+                    MSMQ msmq= new MSMQ();
+                    msmq.sendData2Queue(token);
+                    return token;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        public bool resetPassword(ResetPasswordModel model,string email)
+        {
+            try
+            {
+                
+                var checkemail = context.User.FirstOrDefault(x => x.Email == email);
+                if(model.NewPassword==model.ConfirmPassword) {
+                    checkemail.Password = EncrytPassword(model.NewPassword);
+                    context.SaveChanges();
+                    return true;
+
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+     
+        private string Generate(string email,long userid)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -92,6 +142,10 @@ namespace RepositoryLayer.Services
 
            
         }
+
+      
     }
+ 
+  
 
 }

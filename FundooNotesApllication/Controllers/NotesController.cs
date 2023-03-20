@@ -8,6 +8,7 @@ using RepositoryLayer.Migrations;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Security.Claims;
 
 namespace FundooNotesApllication.Controllers
@@ -264,6 +265,55 @@ namespace FundooNotesApllication.Controllers
                 else
                 {
                     return BadRequest(new ResponseModel<string> { Status = false, Message = "Image upload Unsuccessful" });
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        [Authorize]
+        [HttpGet("Search/{keyword}")]
+        public ActionResult NotesByKeyword(string keyword)
+        {
+            try
+            {
+                var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
+                var notes=manager.getNotesByPhrase(userid,keyword.ToLower());
+                int countOfRews = notes.Count();
+                if(notes!=null && countOfRews > 0)
+                {
+                    return Ok(new ResponseModel<IEnumerable<NotesEntity>> { Status = true, Message = $"Total number of rows matching the phrase {keyword} = {countOfRews} rows", Data = notes });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel<string> { Status = false, Message = "Note not found for the matching phrase" });
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+        [Authorize]
+        [HttpGet("Search/{keyword}/{pagesize}/{pagenum}")]
+        public ActionResult NotesByKeywordPaginated(string keyword,int pagesize,int pagenum)
+        {
+            try
+            {
+                var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
+                var notes=manager.getNotesByPhrasePagination(userid,keyword.ToLower(),pagesize,pagenum);
+                int countOfRows = notes.Count();
+                if(notes !=null && countOfRows> 0)
+                {
+                    return Ok(new ResponseModel<IEnumerable<NotesEntity>> { Status = true, Message = $"Total number of rows matching the phrase {keyword} = {countOfRows} rows", Data = notes });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel<string> { Status = false, Message = "Page Empty" });
                 }
             }
             catch (Exception)
