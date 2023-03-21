@@ -81,7 +81,7 @@ namespace FundooNotesApllication.Controllers
             {
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
                 var note = manager.deleteNote(id, userid);
-                if (note != null)
+                if (note)
                 {
                     return Ok(new ResponseModel<bool> { Status = true, Message = "Note deleted successfully", Data = note });
                 }
@@ -103,7 +103,26 @@ namespace FundooNotesApllication.Controllers
             try
             {
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
-                var note = manager.getNoteById(id, userid);
+                var cacheKey = id.ToString();
+                string serializedNote;
+                var note = new NotesEntity();
+                var CacheNote = distributedCache.Get(cacheKey);
+                if (CacheNote != null)
+                {
+                    serializedNote = Encoding.UTF8.GetString(CacheNote);
+                    note = JsonConvert.DeserializeObject<NotesEntity>(serializedNote);
+                }
+                else
+                {
+                    note = manager.getNoteById(id, userid);
+                    serializedNote = JsonConvert.SerializeObject(note);
+                    CacheNote = Encoding.UTF8.GetBytes(serializedNote);
+                    var options = new DistributedCacheEntryOptions()
+                        .SetAbsoluteExpiration(DateTime.Now.AddMinutes(10))
+                        .SetSlidingExpiration(TimeSpan.FromMinutes(2));
+                    distributedCache.Set(cacheKey, CacheNote, options);
+                }
+                
                 if (note != null)
                 {
                     return Ok(new ResponseModel<NotesEntity> { Status = true, Message = "Note found", Data = note });

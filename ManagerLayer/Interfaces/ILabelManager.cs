@@ -11,7 +11,7 @@ namespace ManagerLayer.Interfaces
         public LabelEntity AddLabel(AddLabelModel model, long userid);
         public bool RemoveLabel(long userid,  long labelid);
         public LabelEntity UpdateLabel(long userid, UpdateLabelModel model);
-        public IEnumerable<LabelEntity> GetLabels(long userid, long noteid);
-        public IEnumerable<LabelEntity> GetAllLabelsForUser(long userid);
+        public List<LabelEntity> GetLabels(long userid, long noteid);
+        public List<LabelEntity> GetAllLabelsForUser(long userid);
     }
 }

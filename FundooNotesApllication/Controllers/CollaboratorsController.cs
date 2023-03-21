@@ -2,12 +2,15 @@
 using ManagerLayer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using ModelLayer;
+using Newtonsoft.Json;
 using RepositoryLayer.Entity;
 using RepositoryLayer.FundooDBContext;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 
 namespace FundooNotesApllication.Controllers
 {
@@ -16,9 +19,11 @@ namespace FundooNotesApllication.Controllers
     public class CollaboratorsController : ControllerBase
     {
         private readonly ICollabManager manager;
-        public CollaboratorsController(ICollabManager manager)
+        private readonly IDistributedCache distributedCache;
+        public CollaboratorsController(ICollabManager manager, IDistributedCache distributedCache)
         {
             this.manager = manager;
+            this.distributedCache = distributedCache;
         }
         [Authorize]
         [HttpPost]
@@ -45,20 +50,39 @@ namespace FundooNotesApllication.Controllers
 
         }
         [Authorize]
-        [HttpGet]
+        [HttpGet("{noteid}")]
         public ActionResult getAllCollab(long noteid)
         {
             try
             {
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
-                var collab=manager.GetAllCollab(userid,noteid);
-                if (collab != null)
+                var cacheKey = $"Collabs{noteid}";
+                string serializedCollabList;
+                var collab = new List<CollaboratorEntity>();
+                var collabList = distributedCache.Get(cacheKey);
+                if (collabList != null)
                 {
-                    return Ok(new ResponseModel<IEnumerable<CollaboratorEntity>> { Status = true, Message = "Collab added successfully", Data = collab });
+                    serializedCollabList = Encoding.UTF8.GetString(collabList);
+                    collab = JsonConvert.DeserializeObject<List<CollaboratorEntity>>(serializedCollabList);
                 }
                 else
                 {
-                    return BadRequest(new ResponseModel<string> { Status = false, Message = "Collab was not added" });
+                    collab = manager.GetAllCollab(userid, noteid);
+                    serializedCollabList=JsonConvert.SerializeObject(collab);
+                    collabList = Encoding.UTF8.GetBytes(serializedCollabList);
+                    var options = new DistributedCacheEntryOptions()
+                        .SetAbsoluteExpiration(DateTime.Now.AddMinutes(10))
+                        .SetSlidingExpiration(TimeSpan.FromMinutes(2));
+                    distributedCache.Set(cacheKey, collabList, options);
+                }
+                 
+                if (collab != null)
+                {
+                    return Ok(new ResponseModel<List<CollaboratorEntity>> { Status = true, Message = "Collab Retrieved successfully", Data = collab });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel<string> { Status = false, Message = "Collab could not be retrieved" });
                 }
             }
             catch (Exception)
@@ -75,7 +99,7 @@ namespace FundooNotesApllication.Controllers
             {
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
                 var collab = manager.DeleteColab(userid, noteid, collabid);
-                if (collab != null)
+                if (collab )
                 {
                     return Ok(new ResponseModel<bool> { Status = true, Message = "Collab deleted successfully", Data = collab });
                 }

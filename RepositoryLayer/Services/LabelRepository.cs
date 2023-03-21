@@ -91,7 +91,7 @@ namespace RepositoryLayer.Services
                 throw;
             }
         }
-        public IEnumerable<LabelEntity> GetLabels(long userid,long noteid)
+        public List<LabelEntity> GetLabels(long userid,long noteid)
         {
             try
             {
@@ -111,7 +111,7 @@ namespace RepositoryLayer.Services
                 throw;
             }
         }
-        public IEnumerable<LabelEntity> GetAllLabelsForUser(long userid)
+        public List<LabelEntity> GetAllLabelsForUser(long userid)
         {
             try
             {

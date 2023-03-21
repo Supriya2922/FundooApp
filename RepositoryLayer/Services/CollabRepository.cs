@@ -68,11 +68,11 @@ namespace RepositoryLayer.Services
             }
         }
 
-        public IEnumerable<CollaboratorEntity> GetAllCollab(long userid, long noteid)
+        public List<CollaboratorEntity> GetAllCollab(long userid, long noteid)
         {
             try
             {
-                var collab = context.Collaborators.Where(x => x.UserId == userid && x.NotesId == noteid);
+                var collab = context.Collaborators.Where(x => x.UserId == userid && x.NotesId == noteid).ToList();
                 if (collab != null)
                     return collab;
                 else

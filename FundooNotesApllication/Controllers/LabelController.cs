@@ -1,10 +1,14 @@
 ﻿using ManagerLayer.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using ModelLayer;
+using Newtonsoft.Json;
 using RepositoryLayer.Entity;
+using RepositoryLayer.Migrations;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace FundooNotesApllication.Controllers
 {
@@ -13,9 +17,11 @@ namespace FundooNotesApllication.Controllers
     public class LabelController : ControllerBase
     {
         private readonly ILabelManager manager;
-        public LabelController(ILabelManager manager)
+        private readonly IDistributedCache distributedCache;
+        public LabelController(ILabelManager manager, IDistributedCache distributedCache)
         {
             this.manager = manager;
+            this.distributedCache = distributedCache;
         }
         [Authorize]
         [HttpPost]
@@ -49,7 +55,7 @@ namespace FundooNotesApllication.Controllers
             {
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
                 var label=manager.RemoveLabel(userid,labelid);
-                if (label != null)
+                if (label)
                 {
                     return Ok(new ResponseModel<bool> { Status = true, Message = "Label deleted successfully", Data = label });
                 }
@@ -95,10 +101,29 @@ namespace FundooNotesApllication.Controllers
             try
             {
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
-                var label = manager.GetLabels(userid, noteid);
-                if (label != null)
+                var cacheKey = $"Labels{noteid}";
+                string serializedLabelList;
+                var labels = new List<LabelEntity>();
+                var LabelList = distributedCache.Get(cacheKey);
+                if (LabelList != null)
                 {
-                    return Ok(new ResponseModel<IEnumerable<LabelEntity>> { Status = true, Message = "Label retrieved successfully", Data = label });
+                    serializedLabelList = Encoding.UTF8.GetString(LabelList);
+                    labels = JsonConvert.DeserializeObject<List<LabelEntity>>(serializedLabelList);
+                }
+                else
+                {
+                    labels = manager.GetLabels(userid, noteid);
+                    serializedLabelList = JsonConvert.SerializeObject(labels);
+                    LabelList = Encoding.UTF8.GetBytes(serializedLabelList);
+                    var options = new DistributedCacheEntryOptions()
+                        .SetAbsoluteExpiration(DateTime.Now.AddMinutes(10))
+                        .SetSlidingExpiration(TimeSpan.FromMinutes(2));
+                    distributedCache.Set(cacheKey, LabelList, options);
+                }
+                
+                if (labels != null)
+                {
+                    return Ok(new ResponseModel<IEnumerable<LabelEntity>> { Status = true, Message = "Label retrieved successfully", Data = labels });
                 }
                 else
                 {
@@ -118,10 +143,29 @@ namespace FundooNotesApllication.Controllers
             try
             {
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
-                var label = manager.GetAllLabelsForUser(userid);
-                if (label != null)
+                var cacheKey = $"Labels{userid}";
+                string serializedLabelList;
+                var labels = new List<LabelEntity>();
+                var LabelList = distributedCache.Get(cacheKey);
+                if (LabelList != null)
                 {
-                    return Ok(new ResponseModel<IEnumerable<LabelEntity>> { Status = true, Message = "Label retrieved successfully", Data = label });
+                    serializedLabelList = Encoding.UTF8.GetString(LabelList);
+                    labels = JsonConvert.DeserializeObject<List<LabelEntity>>(serializedLabelList);
+                }
+                else
+                {
+                    labels = manager.GetAllLabelsForUser(userid);
+                    serializedLabelList = JsonConvert.SerializeObject(labels);
+                    LabelList = Encoding.UTF8.GetBytes(serializedLabelList);
+                    var options = new DistributedCacheEntryOptions()
+                        .SetAbsoluteExpiration(DateTime.Now.AddMinutes(10))
+                        .SetSlidingExpiration(TimeSpan.FromMinutes(2));
+                    distributedCache.Set(cacheKey, LabelList, options);
+                }
+               
+                if (labels != null)
+                {
+                    return Ok(new ResponseModel<List<LabelEntity>> { Status = true, Message = "Label retrieved successfully", Data = labels });
                 }
                 else
                 {

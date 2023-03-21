@@ -23,7 +23,7 @@ namespace ManagerLayer.Services
         {
             return repository.DeleteColab(userid, noteid, colabId);
         }
-        public IEnumerable<CollaboratorEntity> GetAllCollab(long userid, long noteid)
+        public List<CollaboratorEntity> GetAllCollab(long userid, long noteid)
         {
             return repository.GetAllCollab(userid, noteid);
         }

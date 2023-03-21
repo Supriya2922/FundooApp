@@ -28,11 +28,11 @@ namespace ManagerLayer.Services
         {
             return repository.UpdateLabel(userid, model);
         }
-        public IEnumerable<LabelEntity> GetLabels(long userid, long noteid)
+        public List<LabelEntity> GetLabels(long userid, long noteid)
         {
             return repository.GetLabels(userid, noteid);
         }
-        public IEnumerable<LabelEntity> GetAllLabelsForUser(long userid)
+        public List<LabelEntity> GetAllLabelsForUser(long userid)
         {
             return repository.GetAllLabelsForUser(userid);
         }
