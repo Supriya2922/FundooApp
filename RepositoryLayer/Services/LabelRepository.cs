@@ -47,10 +47,10 @@ namespace RepositoryLayer.Services
             }
         }
 
-        public bool RemoveLabel(long userid,long noteid,long labelid) {
+        public bool RemoveLabel(long userid,long labelid) {
             try
             {
-                var label = context.Labels.FirstOrDefault(x => x.LabelId == labelid && x.UserId == userid && x.NotesId == noteid);
+                var label = context.Labels.FirstOrDefault(x => x.LabelId == labelid && x.UserId == userid );
                 if (label != null)
                 {
                     context.Labels.Remove(label);
@@ -73,7 +73,7 @@ namespace RepositoryLayer.Services
         {
             try
             {
-                var label = context.Labels.FirstOrDefault(x => x.UserId == userid && x.NotesId == model.NotesId && x.LabelId == model.labelid);
+                var label = context.Labels.FirstOrDefault(x => x.UserId == userid && x.LabelId == model.labelid);
                 if(label != null) 
                 {
                     label.LabelName = model.labelname;

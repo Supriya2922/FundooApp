@@ -50,8 +50,8 @@ namespace FundooNotesApllication
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Version = "v1",
-                    Title = "Implement Swagger UI",
-                    Description = "A simple example to Implement Swagger UI",
+                    Title = "Fundoo notes application",
+                    Description = "Google Keep Clone",
                 });
                 var securitySchema = new OpenApiSecurityScheme
 
@@ -86,6 +86,10 @@ namespace FundooNotesApllication
                          IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"]))
                      };
                  });
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = "localhost:6379";
+            });
 
         } 
 

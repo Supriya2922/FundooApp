@@ -42,13 +42,13 @@ namespace FundooNotesApllication.Controllers
         }
 
         [Authorize]
-        [HttpDelete]
-        public ActionResult deleteLabel(int noteid,int labelid) 
+        [HttpDelete("{labelid}")]
+        public ActionResult deleteLabel(int labelid) 
         {
             try
             {
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
-                var label=manager.RemoveLabel(userid,noteid,labelid);
+                var label=manager.RemoveLabel(userid,labelid);
                 if (label != null)
                 {
                     return Ok(new ResponseModel<bool> { Status = true, Message = "Label deleted successfully", Data = label });
@@ -66,7 +66,7 @@ namespace FundooNotesApllication.Controllers
             }
         }
         [Authorize]
-        [HttpPut]
+        [HttpPut("{labelid}")]
         public ActionResult UpdateLabel(UpdateLabelModel model)
         {
             try
@@ -89,7 +89,7 @@ namespace FundooNotesApllication.Controllers
             }
         }
         [Authorize]
-        [HttpGet]
+        [HttpGet("{noteid}")]
         public ActionResult GetAllLabels(long noteid)
         {
             try
@@ -111,6 +111,28 @@ namespace FundooNotesApllication.Controllers
                 throw;
             }
         }
-        
+        [Authorize]
+        [HttpGet]
+        public ActionResult GetLabelsByUser()
+        {
+            try
+            {
+                var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
+                var label = manager.GetAllLabelsForUser(userid);
+                if (label != null)
+                {
+                    return Ok(new ResponseModel<IEnumerable<LabelEntity>> { Status = true, Message = "Label retrieved successfully", Data = label });
+                }
+                else
+                {
+                    return BadRequest(new ResponseModel<string> { Status = false, Message = "Empty labels" });
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
     }
 }

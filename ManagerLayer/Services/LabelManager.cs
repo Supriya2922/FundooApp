@@ -20,9 +20,9 @@ namespace ManagerLayer.Services
         {
             return repository.AddLabel(model, userid);
         }
-        public bool RemoveLabel(long userid, long noteid, long labelid)
+        public bool RemoveLabel(long userid,  long labelid)
         {
-            return repository.RemoveLabel(userid, noteid, labelid);
+            return repository.RemoveLabel(userid, labelid);
         }
         public LabelEntity UpdateLabel(long userid, UpdateLabelModel model)
         {

@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using ModelLayer;
+using Newtonsoft.Json;
 using RepositoryLayer.Entity;
 using RepositoryLayer.Migrations;
 using System;
@@ -10,6 +12,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
 
 namespace FundooNotesApllication.Controllers
 {
@@ -18,9 +21,11 @@ namespace FundooNotesApllication.Controllers
     public class NotesController : ControllerBase
     {
         private readonly INotesManager manager;
-        public NotesController(INotesManager manager)
+        private readonly IDistributedCache distributedCache;
+        public NotesController(INotesManager manager, IDistributedCache distributedCache)
         {
             this.manager = manager;
+            this.distributedCache = distributedCache;
         }
         [Authorize]
         [HttpPost]
@@ -122,7 +127,26 @@ namespace FundooNotesApllication.Controllers
             try
             {
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
-                var notes = manager.getAllNotes(userid);
+                var cacheKey = "Notes";
+                string serializedNotesList;
+                var notes = new List<NotesEntity>();
+                var NotesList = distributedCache.Get(cacheKey);
+                if (NotesList != null)
+                {
+                    serializedNotesList = Encoding.UTF8.GetString(NotesList);
+                    notes = JsonConvert.DeserializeObject<List<NotesEntity>>(serializedNotesList);
+                }
+                else
+                {
+                    notes = manager.getAllNotes(userid);
+                    serializedNotesList = JsonConvert.SerializeObject(notes);
+                    NotesList = Encoding.UTF8.GetBytes(serializedNotesList);
+                    var options = new DistributedCacheEntryOptions()
+                        .SetAbsoluteExpiration(DateTime.Now.AddMinutes(10))
+                        .SetSlidingExpiration(TimeSpan.FromMinutes(2));
+                     distributedCache.Set(cacheKey, NotesList, options);
+                }
+               
                 if (notes != null)
                 {
                     return Ok(new ResponseModel<List<NotesEntity>> { Status = true, Message = "Retreival Successful", Data = notes });
