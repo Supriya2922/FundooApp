@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
 using ModelLayer;
 using Newtonsoft.Json;
 using RepositoryLayer.Entity;
@@ -22,8 +23,10 @@ namespace FundooNotesApllication.Controllers
     {
         private readonly INotesManager manager;
         private readonly IDistributedCache distributedCache;
-        public NotesController(INotesManager manager, IDistributedCache distributedCache)
+        private readonly ILogger<NotesController> _logger;
+        public NotesController(INotesManager manager, IDistributedCache distributedCache, ILogger<NotesController> logger)
         {
+            _logger = logger;
             this.manager = manager;
             this.distributedCache = distributedCache;
         }
@@ -33,20 +36,22 @@ namespace FundooNotesApllication.Controllers
         {
             try
             {
+                _logger.LogInformation("called Add Notes API");
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
                 var creatnote=manager.createNote(model,userid);
                 if(creatnote != null)
                 {
+                    _logger.LogInformation("Note added");
                     return Ok(new ResponseModel<NotesEntity> { Status=true,Message="Note created successfully", Data = creatnote });
                 }
                 else
                 {
-                    return BadRequest(new ResponseModel<NotesEntity> { Status = false, Message = "Note could not be created ",  });
+                    return BadRequest(new ResponseModel<NotesEntity> { Status = false, Message = "Note could not be created " });
                 }
             }
-            catch (System.Exception)
+            catch (Exception e)
             {
-
+                _logger.LogError("Error", e);
                 throw;
             }
         }
@@ -56,10 +61,12 @@ namespace FundooNotesApllication.Controllers
         {
             try
             {
+                _logger.LogInformation("Note Update API called");
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
                 var note = manager.updateNote(model,id, userid);
                 if (note != null)
                 {
+                    _logger.LogInformation("Note Updated");
                     return Ok(new ResponseModel<NotesEntity> { Status = true, Message = "Note updated successfully", Data = note });
                 }
                 else
@@ -79,10 +86,12 @@ namespace FundooNotesApllication.Controllers
         {
             try
             {
+                _logger.LogInformation("Note Delete API called");
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
                 var note = manager.deleteNote(id, userid);
                 if (note)
                 {
+                    _logger.LogInformation("Note Deleted");
                     return Ok(new ResponseModel<bool> { Status = true, Message = "Note deleted successfully", Data = note });
                 }
                 else
@@ -144,7 +153,9 @@ namespace FundooNotesApllication.Controllers
         public ActionResult GetAllNotes()
         {
             try
+                
             {
+                _logger.LogInformation("GetAll Note API called");
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
                 var cacheKey = "Notes";
                 string serializedNotesList;
@@ -326,14 +337,15 @@ namespace FundooNotesApllication.Controllers
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
                 var notes=manager.getNotesByPhrase(userid,keyword.ToLower());
                 int countOfRews = notes.Count();
-                if(notes!=null && countOfRews > 0)
-                {
-                    return Ok(new ResponseModel<IEnumerable<NotesEntity>> { Status = true, Message = $"Total number of rows matching the phrase {keyword} = {countOfRews} rows", Data = notes });
-                }
-                else
-                {
-                    return BadRequest(new ResponseModel<string> { Status = false, Message = "Note not found for the matching phrase" });
-                }
+                 if(notes!=null && countOfRews > 0)
+                 {
+                     return Ok(new ResponseModel<IEnumerable<NotesEntity>> { Status = true, Message = $"Total number of rows matching the phrase {keyword} = {countOfRews} rows", Data = notes });
+                 }
+                 else
+                 {
+                     return BadRequest(new ResponseModel<string> { Status = false, Message = "Note not found for the matching phrase" });
+                 }
+               
             }
             catch (Exception)
             {
@@ -350,9 +362,9 @@ namespace FundooNotesApllication.Controllers
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
                 var notes=manager.getNotesByPhrasePagination(userid,keyword.ToLower(),pagesize,pagenum);
                 int countOfRows = notes.Count();
-                if(notes !=null && countOfRows> 0)
+                if(notes != null && countOfRows > 0)
                 {
-                    return Ok(new ResponseModel<IEnumerable<NotesEntity>> { Status = true, Message = $"Total number of rows matching the phrase {keyword} = {countOfRows} rows", Data = notes });
+                    return Ok(new ResponseModel<List<NotesEntity>> { Status = true, Message = $"Total number of rows matching the phrase {keyword} = {countOfRows} rows", Data = notes });
                 }
                 else
                 {

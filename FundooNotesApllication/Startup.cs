@@ -1,5 +1,6 @@
 using ManagerLayer.Interfaces;
 using ManagerLayer.Services;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -15,6 +16,7 @@ using Microsoft.OpenApi.Models;
 using RepositoryLayer.FundooDBContext;
 using RepositoryLayer.Interfaces;
 using RepositoryLayer.Services;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +29,7 @@ namespace FundooNotesApllication
     {
         public Startup(IConfiguration configuration)
         {
+            Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration).CreateLogger();
             Configuration = configuration;
         }
 
@@ -45,6 +48,19 @@ namespace FundooNotesApllication
             services.AddTransient<ICollabRepository, CollabRepository>();
             services.AddTransient<ILabelManager, LabelManager>();
             services.AddTransient<ILabelRepository, LabelRepository>();
+            services.AddMassTransit(x =>
+            {
+                x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(config =>
+                {
+
+                    config.Host(new Uri("rabbitmq://localhost"), h =>
+                    {
+                        h.Username("guest");
+                        h.Password("guest");
+                    });
+                }));
+            });
+         /*  */
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
@@ -94,13 +110,13 @@ namespace FundooNotesApllication
         } 
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            loggerFactory.AddSerilog();
             app.UseRouting();
 
             app.UseAuthentication();

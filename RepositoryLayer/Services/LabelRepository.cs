@@ -1,4 +1,5 @@
-﻿using ModelLayer;
+﻿using Microsoft.EntityFrameworkCore;
+using ModelLayer;
 using RepositoryLayer.Entity;
 using RepositoryLayer.FundooDBContext;
 using RepositoryLayer.Interfaces;
@@ -29,9 +30,10 @@ namespace RepositoryLayer.Services
                 label.NotesId = model.NoteId;
                 label.LabelName = model.LabelName;
                 var check=context.Labels.Add(label);
-                context.SaveChanges();
-                if(check!= null)
+               
+                if(check.State == EntityState.Added)
                 {
+                    context.SaveChanges();
                     return label;
                 }
                 else
@@ -96,7 +98,7 @@ namespace RepositoryLayer.Services
             try
             {
                 var label = context.Labels.Where(x => x.UserId == userid && x.NotesId == noteid).ToList();
-                if (label != null)
+                if (label.Any())
                 {
                     return label;
                 }
@@ -117,7 +119,7 @@ namespace RepositoryLayer.Services
             {
 
                 var label = context.Labels.Where(x => x.UserId == userid).ToList();
-                if (label != null)
+                if (label.Any())
                 {
                     return label;
                 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using ModelLayer;
 using RepositoryLayer.Entity;
 using RepositoryLayer.FundooDBContext;
@@ -29,10 +30,15 @@ namespace RepositoryLayer.Services
                 collab.CollabEmail = model.email;
                 collab.UserId= userid;
                 collab.NotesId = model.NoteId;
-                var check=context.Collaborators.Add(collab);
-                context.SaveChanges();
-                if (check != null)
+                if (context.Collaborators.Any(x => x.CollabEmail == model.email))
                 {
+                    return null;
+                }
+                var check=context.Collaborators.Add(collab);
+               
+                if (check.State == EntityState.Added)
+                {
+                    context.SaveChanges();
                     return collab;
                 }
                 else

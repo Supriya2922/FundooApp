@@ -1,5 +1,6 @@
 ﻿using ManagerLayer.Interfaces;
 using ManagerLayer.Services;
+using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
@@ -10,7 +11,9 @@ using RepositoryLayer.FundooDBContext;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FundooNotesApllication.Controllers
 {
@@ -20,26 +23,44 @@ namespace FundooNotesApllication.Controllers
     {
         private readonly ICollabManager manager;
         private readonly IDistributedCache distributedCache;
-        public CollaboratorsController(ICollabManager manager, IDistributedCache distributedCache)
+        private readonly IBus _bus;
+        public CollaboratorsController(ICollabManager manager, IDistributedCache distributedCache, IBus bus)
         {
             this.manager = manager;
             this.distributedCache = distributedCache;
+            _bus = bus;
         }
         [Authorize]
         [HttpPost]
-        public ActionResult createCollab(AddCollabModel model)
+        public async Task<IActionResult> createCollab(AddCollabModel model)
         {
             try
             {
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
+                var email = User.FindFirst(ClaimTypes.Email).Value.ToString();
                 var collab = manager.AddCollab(userid, model);
-                if(collab != null)
+               
+              
+                if (collab != null)
                 {
-                    return Ok(new ResponseModel<CollaboratorEntity> { Status=true,Message="Collab added successfully",Data= collab});
+                    CollabModel collabModel = new CollabModel();
+                    collabModel.NoteId = model.NoteId;
+                    collabModel.email = email;
+                    collabModel.collabemail = model.email;
+                    if (collabModel != null)
+                    {
+
+                        Uri uri = new Uri("rabbitmq://localhost/CollabQueue");
+                        var endPoint = await _bus.GetSendEndpoint(uri);
+                        await endPoint.Send(collabModel);
+                        return Ok(new ResponseModel<CollaboratorEntity> { Status = true, Message = "Collab added successfully and email will be sent to Collabortor", Data = collab });
+                    }
+                    return BadRequest();
+                   
                 }
                 else
                 {
-                    return BadRequest(new ResponseModel<string> { Status = false, Message = "Collab was not added" });
+                    return BadRequest(new ResponseModel<string> { Status = false, Message = "Collab was not added-Collab email already present" });
                 }
             }
             catch (Exception)
@@ -92,7 +113,7 @@ namespace FundooNotesApllication.Controllers
             }
         }
         [Authorize]
-        [HttpDelete("{id}")]
+        [HttpDelete("{collabid}")]
         public ActionResult deleteCollab(long noteid,long collabid)
         {
             try

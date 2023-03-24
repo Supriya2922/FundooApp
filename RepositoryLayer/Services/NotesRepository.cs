@@ -6,22 +6,17 @@ using ModelLayer;
 using RepositoryLayer.Entity;
 using RepositoryLayer.FundooDBContext;
 using RepositoryLayer.Interfaces;
-using RepositoryLayer.Migrations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-
+using Microsoft.EntityFrameworkCore;
 namespace RepositoryLayer.Services
 {
-    public class NotesRepository:INotesRepository
+    public class NotesRepository : INotesRepository
     {
         private readonly FunContext context;
         private readonly Cloudinary _cloudinary;
-        public NotesRepository(FunContext context,IConfiguration config)
+        public NotesRepository(FunContext context, IConfiguration config)
         {
             this.context = context;
             var account = new Account(
@@ -32,32 +27,33 @@ namespace RepositoryLayer.Services
 
         }
 
-        public NotesEntity CreateNotes(CreateNotesModel model,long id)
+        public NotesEntity CreateNotes(CreateNotesModel model, long id)
         {
             try
             {
                 NotesEntity notes = new NotesEntity();
                 notes.Title = model.Title;
                 notes.Description = model.Description;
-               
+
                 notes.isPinned = false;
                 notes.trash = false;
-                notes.isArchieved= false;
+                notes.isArchieved = false;
                 notes.UserId = id;
-                notes.CreatedOn=DateTime.Now;
-                notes.LastUpdatedOn=DateTime.Now;
-               
+                notes.CreatedOn = DateTime.Now;
+                notes.LastUpdatedOn = DateTime.Now;
+
                 var check = context.Notes.Add(notes);
-                context.SaveChanges();
-                if (check != null)
+              
+                if (check.State==EntityState.Added)
                 {
+                    context.SaveChanges();
                     return notes;
                 }
                 else
                 {
                     return null;
                 }
-                
+
 
             }
             catch (Exception)
@@ -67,11 +63,11 @@ namespace RepositoryLayer.Services
             }
         }
 
-        public bool deleteNote(long noteid,long userid)
+        public bool deleteNote(long noteid, long userid)
         {
             try
             {
-                var checkId = context.Notes.FirstOrDefault(x => x.NotesId == noteid && x.UserId==userid);
+                var checkId = context.Notes.FirstOrDefault(x => x.NotesId == noteid && x.UserId == userid);
                 if (checkId != null)
                 {
                     context.Notes.Remove(checkId);
@@ -89,10 +85,10 @@ namespace RepositoryLayer.Services
 
                 throw;
             }
-          
-           
+
+
         }
-        public NotesEntity updateNote(UpdateNoteModel model,long id,long userid)
+        public NotesEntity updateNote(UpdateNoteModel model, long id, long userid)
         {
             try
             {
@@ -101,9 +97,9 @@ namespace RepositoryLayer.Services
                 {
                     notes.Title = model.Title;
                     notes.Description = model.Description;
-                    
+
                     notes.LastUpdatedOn = DateTime.Now;
-                   
+
                     context.SaveChanges();
                     return notes;
                 }
@@ -122,7 +118,7 @@ namespace RepositoryLayer.Services
             try
             {
                 var checkuser = context.Notes.Where(x => x.UserId == userid);
-                if(checkuser!=null)
+                if (checkuser.Any())
                     return checkuser.ToList();
                 else
                     return null;
@@ -132,15 +128,15 @@ namespace RepositoryLayer.Services
 
                 throw;
             }
-          
-           
+
+
         }
 
-        public NotesEntity getNoteById(long id,long userid)
+        public NotesEntity getNoteById(long id, long userid)
         {
             try
             {
-                var notes = context.Notes.FirstOrDefault(x => x.NotesId== id && x.UserId==userid);
+                var notes = context.Notes.FirstOrDefault(x => x.NotesId == id && x.UserId == userid);
                 if (notes != null)
                 {
                     return notes;
@@ -156,12 +152,12 @@ namespace RepositoryLayer.Services
                 throw;
             }
         }
-        public NotesEntity addBackgroundColor(long id,long userid,string color)
+        public NotesEntity addBackgroundColor(long id, long userid, string color)
         {
             try
             {
                 var note = context.Notes.FirstOrDefault(x => x.NotesId == id && x.UserId == userid);
-                if (note!=null)
+                if (note != null)
                 {
                     note.BackgroundColor = color;
                     note.LastUpdatedOn = DateTime.Now;
@@ -180,14 +176,14 @@ namespace RepositoryLayer.Services
             }
         }
 
-        public NotesEntity Archive(long id,long userid)
+        public NotesEntity Archive(long id, long userid)
         {
             try
             {
                 var note = context.Notes.FirstOrDefault(x => x.UserId == userid && x.NotesId == id);
-                if(note!=null)
+                if (note != null)
                 {
-                    if(note.isArchieved)
+                    if (note.isArchieved)
                         note.isArchieved = false;
                     else
                         note.isArchieved = true;
@@ -230,7 +226,7 @@ namespace RepositoryLayer.Services
                 throw;
             }
         }
-        public NotesEntity Trash(long id, long userid,bool deleteforever)
+        public NotesEntity Trash(long id, long userid, bool deleteforever)
         {
             try
             {
@@ -239,9 +235,9 @@ namespace RepositoryLayer.Services
                 {
                     if (note.trash && deleteforever)
                         deleteNote(id, userid);
-                    else if(note.trash==false)
+                    else if (note.trash == false)
                         note.trash = true;
-                    else if(note.trash)
+                    else if (note.trash)
                         note.trash = false;
                     context.SaveChanges();
                     return note;
@@ -257,14 +253,14 @@ namespace RepositoryLayer.Services
                 throw;
             }
         }
-        public NotesEntity SetReminder(long id,long userid,DateTime reminder)
+        public NotesEntity SetReminder(long id, long userid, DateTime reminder)
         {
             try
             {
                 var note = context.Notes.FirstOrDefault(x => x.UserId == userid && x.NotesId == id);
                 if (note != null)
                 {
-                    note.Reminder=reminder;
+                    note.Reminder = reminder;
                     context.SaveChanges();
                     return note;
                 }
@@ -276,7 +272,7 @@ namespace RepositoryLayer.Services
                 throw;
             }
         }
-        public NotesEntity ImageUpload(long id,long userid,IFormFile file)
+        public NotesEntity ImageUpload(long id, long userid, IFormFile file)
         {
             try
             {
@@ -284,18 +280,18 @@ namespace RepositoryLayer.Services
                     return null;
                 var note = context.Notes.FirstOrDefault(x => x.UserId == userid && x.NotesId == id);
                 if (note != null)
-                {                  
+                {
                     using (var stream = file.OpenReadStream())
                     {
                         var uploadParams = new ImageUploadParams
                         {
                             File = new FileDescription(file.FileName, stream),
-                           
+
                         };
                         var uploadResult = _cloudinary.Upload(uploadParams);
-                        note.Image=uploadResult.SecureUrl.ToString();
+                        note.Image = uploadResult.SecureUrl.ToString();
                         note.LastUpdatedOn = DateTime.Now;
-                        context.SaveChanges() ;
+                        context.SaveChanges();
                         return note;
                     }
                 }
@@ -307,36 +303,33 @@ namespace RepositoryLayer.Services
 
                 throw;
             }
-           
+
         }
-        public IEnumerable<NotesEntity> getNotesByPhrase(long userid,  string phrase)
+        public IEnumerable<NotesEntity> getNotesByPhrase(long userid, string phrase)
         {
             try
             {
-                if(phrase=="" || phrase == null)
+                if (phrase == "" || phrase == null)
                 {
                     return null;
                 }
-                    var checkphrase = context.Notes.Where(x => x.UserId == userid && (x.Title.ToLower().Contains(phrase) || x.Description.ToLower().Contains(phrase))).ToList();
-                    if (checkphrase != null)
-                    {
-                        return checkphrase;
-                    }
-                    else
-                    { return null; }
-                
-               
+                var checkphrase = context.Notes.Where(x => x.UserId == userid && (x.Title.ToLower().Contains(phrase) || x.Description.ToLower().Contains(phrase))).ToList();
+                if (checkphrase != null)
+                {
+                    return checkphrase;
+                }
+                else
+                { return null; }
                
             }
             catch (Exception)
             {
-
                 throw;
             }
-            
+
         }
 
-        public IEnumerable<NotesEntity> getNotesByPhrasePagination(long userid, string phrase,int pagesize,int pagenumber)
+        public List<NotesEntity> getNotesByPhrasePagination(long userid, string phrase, int pagesize, int pagenumber)
         {
             try
             {
@@ -354,14 +347,19 @@ namespace RepositoryLayer.Services
                     return checkphrase;
                 }
                 else
-                { return null; }
+                {
+                    return null;
+                }
             }
             catch (Exception)
             {
 
                 throw;
             }
-
+               
+               
+           
+//
         }
     }
 }

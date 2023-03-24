@@ -21,6 +21,6 @@ namespace RepositoryLayer.Interfaces
         public NotesEntity SetReminder(long id, long userid, DateTime reminder);
         public NotesEntity ImageUpload(long id, long userid, IFormFile file);
         public IEnumerable<NotesEntity> getNotesByPhrase(long userid, string phrase);
-        public IEnumerable<NotesEntity> getNotesByPhrasePagination(long userid, string phrase, int pagesize, int pagenumber);
+        public List<NotesEntity> getNotesByPhrasePagination(long userid, string phrase, int pagesize, int pagenumber);
     }
 }

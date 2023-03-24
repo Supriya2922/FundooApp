@@ -69,7 +69,7 @@ namespace ManagerLayer.Services
         {
             return repository.getNotesByPhrase(userid, phrase);
         }
-        public IEnumerable<NotesEntity> getNotesByPhrasePagination(long userid, string phrase, int pagesize, int pagenumber)
+        public List<NotesEntity> getNotesByPhrasePagination(long userid, string phrase, int pagesize, int pagenumber)
         {
             return repository.getNotesByPhrasePagination(userid,phrase,pagesize, pagenumber);
         }
