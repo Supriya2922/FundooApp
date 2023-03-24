@@ -1,3 +1,4 @@
+using ModelLayer.Middleware;
 using ManagerLayer.Interfaces;
 using ManagerLayer.Services;
 using MassTransit;
@@ -116,6 +117,8 @@ namespace FundooNotesApllication
             {
                 app.UseDeveloperExceptionPage();
             }
+            // global error handler
+            app.UseMiddleware<ErrorHandlerMiddleware>();
             loggerFactory.AddSerilog();
             app.UseRouting();
 

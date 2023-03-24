@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
 using ModelLayer;
 using Newtonsoft.Json;
 using RepositoryLayer.Entity;
@@ -18,8 +19,10 @@ namespace FundooNotesApllication.Controllers
     {
         private readonly ILabelManager manager;
         private readonly IDistributedCache distributedCache;
-        public LabelController(ILabelManager manager, IDistributedCache distributedCache)
+        private readonly ILogger<NotesController> _logger;
+        public LabelController(ILabelManager manager, IDistributedCache distributedCache, ILogger<NotesController> logger)
         {
+           this._logger = logger;
             this.manager = manager;
             this.distributedCache = distributedCache;
         }
@@ -29,20 +32,23 @@ namespace FundooNotesApllication.Controllers
         {
             try
             {
+               
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
                 var labeladded=manager.AddLabel(model,userid);
                 if(labeladded!=null)
                 {
+                    _logger.LogInformation("Label added successfully");
                     return Ok(new ResponseModel<LabelEntity> { Status=true ,Message="Label added successfully",Data= labeladded});
                 }
                 else
                 {
+                    _logger.LogInformation("Label could not be added");
                     return BadRequest(new ResponseModel<string> { Status = false, Message = "Label could not be added" });
                 }
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
-
+                _logger.LogError("Error", ex);
                 throw;
             }
         }
@@ -57,17 +63,19 @@ namespace FundooNotesApllication.Controllers
                 var label=manager.RemoveLabel(userid,labelid);
                 if (label)
                 {
+                    _logger.LogInformation("Label deleted successfully");
                     return Ok(new ResponseModel<bool> { Status = true, Message = "Label deleted successfully", Data = label });
                 }
                 else
                 {
+                    _logger.LogInformation("Label could not be deleted");
                     return BadRequest(new ResponseModel<bool> { Status = false, Message = "Label could not be deleted",Data=label });
                 }
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                _logger.LogError("Error", ex);
                 throw;
             }
         }
@@ -81,16 +89,18 @@ namespace FundooNotesApllication.Controllers
                 var label = manager.UpdateLabel(userid, model);
                 if (label!= null)
                 {
+                    _logger.LogInformation("Label updated");
                     return Ok(new ResponseModel<LabelEntity> { Status = true, Message = "Label updated successfully", Data = label });
                 }
                 else
                 {
+                    _logger.LogInformation("Label could not be updated");
                     return BadRequest(new ResponseModel<string> { Status = false, Message = "Label could not be added" });
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                _logger.LogError("Error", ex);
                 throw;
             }
         }
@@ -123,16 +133,18 @@ namespace FundooNotesApllication.Controllers
                 
                 if (labels != null)
                 {
+                    _logger.LogInformation("Labels retrieved");
                     return Ok(new ResponseModel<IEnumerable<LabelEntity>> { Status = true, Message = "Label retrieved successfully", Data = labels });
                 }
                 else
                 {
+                    _logger.LogInformation("Empty labels");
                     return BadRequest(new ResponseModel<string> { Status = false, Message = "Empty labels" });
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                _logger.LogError("Error", ex);
                 throw;
             }
         }
@@ -172,9 +184,9 @@ namespace FundooNotesApllication.Controllers
                     return BadRequest(new ResponseModel<string> { Status = false, Message = "Empty labels" });
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                _logger.LogError("Error", ex);
                 throw;
             }
         }

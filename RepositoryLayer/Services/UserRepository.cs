@@ -13,6 +13,8 @@ using System.Text;
 using System.CodeDom.Compiler;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.InteropServices.WindowsRuntime;
+using Microsoft.EntityFrameworkCore.Query.Internal;
+using ModelLayer.Helper;
 
 namespace RepositoryLayer.Services
 {
@@ -34,6 +36,9 @@ namespace RepositoryLayer.Services
                 entity.FirstName = model.FirstName;
                 entity.LastName = model.LastName;
                 entity.Email = model.Email;
+                if (context.User.Any(x => x.Email == model.Email))
+                    throw new AppException("Email already present!Please enter another email");
+
                 entity.Password = EncrytPassword(model.Password);
                 var check = context.User.Add(entity);
                 context.SaveChanges();
@@ -46,9 +51,8 @@ namespace RepositoryLayer.Services
                     return null;
                 }
             }
-            catch(Exception ex) { 
-            Console.WriteLine(ex.Message);
-                return null;
+            catch(Exception ) {
+                throw;
             }
 
            
@@ -63,6 +67,10 @@ namespace RepositoryLayer.Services
         }
         public string Login(LoginModel model)
         {
+            if(model.Email=="" || model.Email == null)
+            {
+                throw new AppException("Empty or Null Email");
+            }
             var checkDetails=context.User.FirstOrDefault(v=>v.Email==model.Email && v.Password== EncrytPassword(model.Password));
 
             if (checkDetails != null)

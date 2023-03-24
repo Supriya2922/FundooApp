@@ -10,6 +10,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using ModelLayer.Helper;
+
 namespace RepositoryLayer.Services
 {
     public class NotesRepository : INotesRepository
@@ -311,7 +313,7 @@ namespace RepositoryLayer.Services
             {
                 if (phrase == "" || phrase == null)
                 {
-                    return null;
+                    throw new AppException("The search keyword is null");
                 }
                 var checkphrase = context.Notes.Where(x => x.UserId == userid && (x.Title.ToLower().Contains(phrase) || x.Description.ToLower().Contains(phrase))).ToList();
                 if (checkphrase != null)

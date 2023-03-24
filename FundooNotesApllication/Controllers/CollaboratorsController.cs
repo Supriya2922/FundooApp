@@ -4,6 +4,7 @@ using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
 using ModelLayer;
 using Newtonsoft.Json;
 using RepositoryLayer.Entity;
@@ -24,8 +25,10 @@ namespace FundooNotesApllication.Controllers
         private readonly ICollabManager manager;
         private readonly IDistributedCache distributedCache;
         private readonly IBus _bus;
-        public CollaboratorsController(ICollabManager manager, IDistributedCache distributedCache, IBus bus)
+        private readonly ILogger<NotesController> _logger;
+        public CollaboratorsController(ICollabManager manager, IDistributedCache distributedCache, IBus bus, ILogger<NotesController> logger)
         {
+            this._logger = logger;
             this.manager = manager;
             this.distributedCache = distributedCache;
             _bus = bus;
@@ -43,13 +46,14 @@ namespace FundooNotesApllication.Controllers
               
                 if (collab != null)
                 {
+
                     CollabModel collabModel = new CollabModel();
                     collabModel.NoteId = model.NoteId;
                     collabModel.email = email;
                     collabModel.collabemail = model.email;
                     if (collabModel != null)
                     {
-
+                        _logger.LogInformation("Collab added successfully");
                         Uri uri = new Uri("rabbitmq://localhost/CollabQueue");
                         var endPoint = await _bus.GetSendEndpoint(uri);
                         await endPoint.Send(collabModel);
@@ -60,6 +64,7 @@ namespace FundooNotesApllication.Controllers
                 }
                 else
                 {
+                    _logger.LogInformation("Collab was not added");
                     return BadRequest(new ResponseModel<string> { Status = false, Message = "Collab was not added-Collab email already present" });
                 }
             }

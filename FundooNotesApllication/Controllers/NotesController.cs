@@ -38,11 +38,11 @@ namespace FundooNotesApllication.Controllers
             {
                 _logger.LogInformation("called Add Notes API");
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
-                var creatnote=manager.createNote(model,userid);
-                if(creatnote != null)
+                var creatnote = manager.createNote(model, userid);
+                if (creatnote != null)
                 {
                     _logger.LogInformation("Note added");
-                    return Ok(new ResponseModel<NotesEntity> { Status=true,Message="Note created successfully", Data = creatnote });
+                    return Ok(new ResponseModel<NotesEntity> { Status = true, Message = "Note created successfully", Data = creatnote });
                 }
                 else
                 {
@@ -57,13 +57,13 @@ namespace FundooNotesApllication.Controllers
         }
         [Authorize]
         [HttpPut("UpdateNote/{id}")]
-        public ActionResult UpdateNote(UpdateNoteModel model,long id)
+        public ActionResult UpdateNote(UpdateNoteModel model, long id)
         {
             try
             {
                 _logger.LogInformation("Note Update API called");
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
-                var note = manager.updateNote(model,id, userid);
+                var note = manager.updateNote(model, id, userid);
                 if (note != null)
                 {
                     _logger.LogInformation("Note Updated");
@@ -71,7 +71,7 @@ namespace FundooNotesApllication.Controllers
                 }
                 else
                 {
-                    return BadRequest(new ResponseModel<NotesEntity> { Status = false, Message = "Note could not be updated "});
+                    return BadRequest(new ResponseModel<NotesEntity> { Status = false, Message = "Note could not be updated " });
                 }
             }
             catch (System.Exception)
@@ -91,7 +91,7 @@ namespace FundooNotesApllication.Controllers
                 var note = manager.deleteNote(id, userid);
                 if (note)
                 {
-                    _logger.LogInformation("Note Deleted");
+                    _logger.LogInformation($"Note {id} Deleted");
                     return Ok(new ResponseModel<bool> { Status = true, Message = "Note deleted successfully", Data = note });
                 }
                 else
@@ -131,13 +131,15 @@ namespace FundooNotesApllication.Controllers
                         .SetSlidingExpiration(TimeSpan.FromMinutes(2));
                     distributedCache.Set(cacheKey, CacheNote, options);
                 }
-                
+
                 if (note != null)
                 {
+                    _logger.LogInformation($"Note {id} retreived");
                     return Ok(new ResponseModel<NotesEntity> { Status = true, Message = "Note found", Data = note });
                 }
                 else
                 {
+                    _logger.LogInformation($"Note {id} was not retreived as Note was not found");
                     return BadRequest(new ResponseModel<NotesEntity> { Status = false, Message = "Note was not found" });
                 }
 
@@ -153,7 +155,7 @@ namespace FundooNotesApllication.Controllers
         public ActionResult GetAllNotes()
         {
             try
-                
+
             {
                 _logger.LogInformation("GetAll Note API called");
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
@@ -174,9 +176,9 @@ namespace FundooNotesApllication.Controllers
                     var options = new DistributedCacheEntryOptions()
                         .SetAbsoluteExpiration(DateTime.Now.AddMinutes(10))
                         .SetSlidingExpiration(TimeSpan.FromMinutes(2));
-                     distributedCache.Set(cacheKey, NotesList, options);
+                    distributedCache.Set(cacheKey, NotesList, options);
                 }
-               
+
                 if (notes != null)
                 {
                     return Ok(new ResponseModel<List<NotesEntity>> { Status = true, Message = "Retreival Successful", Data = notes });
@@ -195,19 +197,21 @@ namespace FundooNotesApllication.Controllers
 
         [Authorize]
         [HttpPut("BackgroundColor/{id}")]
-        public ActionResult addBackgorundColor(long notesid,string color)
+        public ActionResult addBackgorundColor(long id,string color)
         {
             try
             {
 
                 var userid = Convert.ToInt64(User.FindFirst("Id").Value.ToString());
-                var note=manager.addBackgroundColor(notesid,userid,color);
+                var note=manager.addBackgroundColor(id,userid,color);
                 if (note != null)
                 {
+                    _logger.LogInformation($"Background color{color} added to Note {id}");
                     return Ok(new ResponseModel<NotesEntity> { Status = true, Message = $"Color changed to {color}", Data = note });
                 }
                 else
                 {
+                    _logger.LogInformation($"Background color{color} was not added to Note {id}");
                     return BadRequest(new ResponseModel<string> { Status = false, Message = "Color could not be changed" });
                 }
             }
@@ -230,10 +234,12 @@ namespace FundooNotesApllication.Controllers
                 {
                     if(note.isArchieved)
                     {
+                        _logger.LogInformation($" Note {id} was archived");
                         return Ok(new ResponseModel<NotesEntity> { Status = true, Message = "Note Archived", Data = note });
                     }
                     else
                     {
+                        _logger.LogInformation($" Note {id} was unarchived");
                         return Ok(new ResponseModel<NotesEntity> { Status = true, Message = "Note UnArchived", Data = note });
                     }
                 }
@@ -259,9 +265,17 @@ namespace FundooNotesApllication.Controllers
                 if (note != null)
                 {
                     if (note.isPinned)
-                       return Ok(new ResponseModel<NotesEntity> { Status = true, Message = "Note Pinned", Data = note });
+                    {
+                        _logger.LogInformation($" Note {id} was Pinned");
+                        return Ok(new ResponseModel<NotesEntity> { Status = true, Message = "Note Pinned", Data = note });
+                    }
+
                     else
+                    {
+                        _logger.LogInformation($" Note {id} was unpinned");
                         return Ok(new ResponseModel<NotesEntity> { Status = true, Message = "Note Unpinned", Data = note });
+                    }
+                       
                 }
                 else
                 {

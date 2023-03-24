@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ModelLayer;
+using ModelLayer.Helper;
 using RepositoryLayer.Entity;
 using RepositoryLayer.FundooDBContext;
 using RepositoryLayer.Interfaces;
@@ -29,6 +30,8 @@ namespace RepositoryLayer.Services
                 label.UserId= userid;
                 label.NotesId = model.NoteId;
                 label.LabelName = model.LabelName;
+                if (context.Labels.Any(x => x.LabelName == model.LabelName))
+                    throw new AppException("LabelName already present");
                 var check=context.Labels.Add(label);
                
                 if(check.State == EntityState.Added)
@@ -78,6 +81,8 @@ namespace RepositoryLayer.Services
                 var label = context.Labels.FirstOrDefault(x => x.UserId == userid && x.LabelId == model.labelid);
                 if(label != null) 
                 {
+                    if (context.Labels.Any(x => x.LabelName == model.labelname)) ;
+                        throw new AppException("LabelName already present");
                     label.LabelName = model.labelname;
                     context.SaveChanges();
                     return label;

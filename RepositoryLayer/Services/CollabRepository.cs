@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using ModelLayer;
+using ModelLayer.Helper;
 using RepositoryLayer.Entity;
 using RepositoryLayer.FundooDBContext;
 using RepositoryLayer.Interfaces;
@@ -32,7 +33,7 @@ namespace RepositoryLayer.Services
                 collab.NotesId = model.NoteId;
                 if (context.Collaborators.Any(x => x.CollabEmail == model.email))
                 {
-                    return null;
+                    throw new AppException("Collab email already present");
                 }
                 var check=context.Collaborators.Add(collab);
                
